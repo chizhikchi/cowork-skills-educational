@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api *)",
+      "Bash(python3 -c \"import sys,json; [print\\(i['name']\\) for i in json.load\\(sys.stdin\\)]\")",
+      "Bash(python3 -c \"import sys,json,base64; print\\(base64.b64decode\\(json.load\\(sys.stdin\\)['content']\\).decode\\(\\)\\)\")",
+      "Bash(git branch *)",
+      "Bash(mv temario-didactico *)",
+      "Bash(mv actividades-y-rubrica *)",
+      "Bash(mv corrector-respuestas *)",
+      "Bash(mv leccion-interactiva *)",
+      "Bash(mv generador-examenes *)"
+    ]
+  }
+}

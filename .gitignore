@@ -1,0 +1,9 @@
+# Notas del vault de Obsidian (no se publican)
+/*.md
+!README.md
+
+# Carpeta interna de Obsidian
+.obsidian/
+
+# macOS
+.DS_Store
