@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA para equipos docentes</title>
+  <style>
+    :root {
+      --brand:   #2563eb;
+      --brand-d: #1d4ed8;
+      --accent:  #7c3aed;
+      --ok:      #16a34a;
+      --err:     #dc2626;
+      --bg:      #f8fafc;
+      --surface: #ffffff;
+      --border:  #e2e8f0;
+      --text:    #1e293b;
+      --muted:   #64748b;
+      --radius:  12px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Progress bar ── */
+    #progress-track {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--border);
+      z-index: 100;
+    }
+    #progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+      transition: width .4s ease;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 24px 32px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .session-badge {
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--brand);
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 4px 12px;
+    }
+    #step-counter {
+      font-size: .85rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px 120px;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 760px;
+      animation: fadeUp .35s ease both;
+    }
+    .slide.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Slide card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 40px 44px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04);
+    }
+
+    .slide-tag {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    h1.slide-title {
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .slide-body p {
+      font-size: 1.02rem;
+      line-height: 1.75;
+      color: #334155;
+      margin-bottom: 16px;
+    }
+
+    .slide-body ul, .slide-body ol {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    .slide-body li {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .highlight-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--brand);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 20px;
+      margin: 20px 0;
+      font-size: .97rem;
+      color: #1e40af;
+      line-height: 1.65;
+    }
+
+    .flow-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0;
+    }
+    .flow-chip {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .flow-arrow {
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .use-case-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .use-case-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .use-case-card .uc-icon {
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    .use-case-card h4 {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .use-case-card p {
+      font-size: .82rem !important;
+      color: var(--muted) !important;
+      margin: 0 !important;
+      line-height: 1.5 !important;
+    }
+
+    /* ── Quiz slide ── */
+    #quiz-slide .card {
+      max-width: 760px;
+    }
+
+    .quiz-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .quiz-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .quiz-header h1 { font-size: 1.5rem; }
+    .quiz-header p { font-size: .9rem; color: var(--muted); margin-top: 2px; }
+
+    .question-block {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+      background: #fafafa;
+    }
+
+    .q-label {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .q-text {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .options-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .option-btn {
+      width: 100%;
+      text-align: left;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: .93rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--brand);
+      background: #eff6ff;
+    }
+    .option-btn .opt-letter {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      font-size: .75rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted);
+    }
+    .option-btn.selected {
+      border-color: var(--brand);
+      background: #eff6ff;
+    }
+    .option-btn.selected .opt-letter {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+    .option-btn.correct {
+      border-color: var(--ok);
+      background: #f0fdf4;
+    }
+    .option-btn.correct .opt-letter {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #fff;
+    }
+    .option-btn.wrong {
+      border-color: var(--err);
+      background: #fef2f2;
+    }
+    .option-btn.wrong .opt-letter {
+      background: var(--err);
+      border-color: var(--err);
+      color: #fff;
+    }
+    .option-btn:disabled { cursor: default; }
+
+    .q-feedback {
+      margin-top: 10px;
+      font-size: .85rem;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: none;
+    }
+    .q-feedback.show { display: block; }
+    .q-feedback.ok { background: #f0fdf4; color: #15803d; }
+    .q-feedback.ko { background: #fef2f2; color: #b91c1c; }
+
+    #quiz-submit-btn {
+      margin-top: 28px;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    #quiz-submit-btn:hover { opacity: .9; }
+    #quiz-submit-btn:disabled { opacity: .4; cursor: default; }
+
+    /* ── Results slide ── */
+    #results-slide .card {
+      text-align: center;
+    }
+    .score-ring-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 24px 0 20px;
+    }
+    .score-ring {
+      position: relative;
+      width: 140px; height: 140px;
+    }
+    .score-ring svg {
+      transform: rotate(-90deg);
+    }
+    .score-ring .ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 10;
+    }
+    .score-ring .ring-fill {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 408;
+      stroke-dashoffset: 408;
+      transition: stroke-dashoffset 1.2s ease;
+    }
+    .score-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .result-msg {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .result-sub {
+      font-size: .95rem;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .result-breakdown {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin-bottom: 28px;
+    }
+    .rb-item { text-align: center; }
+    .rb-val {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+    .rb-val.ok-c { color: var(--ok); }
+    .rb-val.err-c { color: var(--err); }
+    .rb-label { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+    #restart-btn {
+      padding: 12px 32px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: opacity .2s;
+    }
+    #restart-btn:hover { opacity: .88; }
+    #retake-quiz-btn {
+      padding: 12px 32px;
+      background: transparent;
+      color: var(--brand);
+      border: 1.5px solid var(--brand);
+      border-radius: 10px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    #retake-quiz-btn:hover { background: #eff6ff; }
+
+    /* ── Bottom nav ── */
+    footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(248,250,252,.9);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+    .nav-btn:hover { border-color: var(--brand); background: #eff6ff; color: var(--brand); }
+    .nav-btn:disabled { opacity: .3; cursor: default; pointer-events: none; }
+    .nav-btn.primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+    .nav-btn.primary:hover { background: var(--brand-d); border-color: var(--brand-d); color: #fff; }
+
+    .step-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background .2s, width .2s;
+      cursor: pointer;
+    }
+    .dot.active { background: var(--brand); width: 22px; border-radius: 4px; }
+    .dot.visited { background: #93c5fd; }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .card { padding: 28px 22px; }
+      h1.slide-title { font-size: 1.35rem; }
+      .use-case-grid { grid-template-columns: 1fr; }
+      footer { padding: 12px 16px; }
+      .nav-btn { padding: 9px 14px; font-size: .82rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Progress bar -->
+<div id="progress-track"><div id="progress-fill"></div></div>
+
+<!-- Header -->
+<header>
+  <span class="session-badge">Sesión formativa · 90 min</span>
+  <span id="step-counter">Paso 1 de 8</span>
+</header>
+
+<main>
+
+  <!-- ══════════ SLIDE 1: Apertura ══════════ -->
+  <section class="slide active" id="slide-0">
+    <div class="card">
+      <p class="slide-tag">Bloque 1 · Contexto</p>
+      <h1 class="slide-title">El nuevo rol del docente en la era de la IA</h1>
+      <div class="slide-body">
+        <p>Durante años, el equipo docente ha invertido horas en crear materiales desde cero: temarios, actividades, exámenes, rúbricas. La IA no elimina ese trabajo — lo transforma.</p>
+        <p>El nuevo rol no es <strong>creador</strong>, sino <strong>curador y revisor</strong>: describes lo que necesitas, la IA genera un borrador y tú lo ajustas, mejoras y validas con tu criterio profesional.</p>
+        <div class="highlight-box">
+          💡 <strong>Idea clave:</strong> La calidad final depende del docente, no de la IA. La IA acelera el primer borrador; el juicio humano garantiza la calidad.
+        </div>
+        <p>Hoy vamos a construir juntos un ecosistema real: desde la nota en Markdown hasta una página web publicada y accesible para cualquier alumno.</p>
+        <div class="flow-row">
+          <span class="flow-chip">📝 Obsidian</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🤖 Cowork</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">💻 Claude Code</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🐙 GitHub</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🌐 Vercel</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 2: Markdown ══════════ -->
+  <section class="slide" id="slide-1">
+    <div class="card">
+      <p class="slide-tag">Bloque 2 · Fundamento técnico</p>
+      <h1 class="slide-title">Markdown: el idioma que conecta todo</h1>
+      <div class="slide-body">
+        <p>Markdown (<code>.md</code>) es texto plano con una sintaxis mínima que cualquier editor entiende. Es el hilo conductor de todo el ecosistema.</p>
+        <ul>
+          <li><strong># Título</strong> → encabezado principal</li>
+          <li><strong>**negrita**</strong> → texto en negrita</li>
+          <li><strong>- elemento</strong> → lista con viñetas</li>
+          <li><strong>[texto](url)</strong> → enlace</li>
+        </ul>
+        <p>¿Por qué importa para trabajar con IA?</p>
+        <ul>
+          <li><strong>Menos tokens</strong> = menor coste al enviar contenido a la IA.</li>
+          <li><strong>Mayor compatibilidad</strong>: GitHub, Obsidian, Notion, VS Code, correo… todos lo entienden.</li>
+          <li><strong>Revisión humana sencilla</strong>: el docente puede leer y editar sin software especial.</li>
+          <li><strong>Base para la web</strong>: Claude Code convierte cualquier <code>.md</code> en HTML en segundos.</li>
+        </ul>
+        <div class="highlight-box">
+          🔗 <strong>Regla de oro:</strong> Todo nace como <code>.md</code> en Obsidian. A partir de ahí, la IA puede convertirlo en lo que necesites.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 3: Cowork ══════════ -->
+  <section class="slide" id="slide-2">
+    <div class="card">
+      <p class="slide-tag">Bloque 3 · Cowork y Skills</p>
+      <h1 class="slide-title">Claude Cowork: tu asistente dentro de Obsidian</h1>
+      <div class="slide-body">
+        <p>Claude Cowork es un asistente de IA integrado directamente en tu Vault de Obsidian. Entiende tus notas, tu estructura y puede crear, modificar y enlazar documentos sin salir del editor.</p>
+        <p><strong>¿Qué son los Skills?</strong><br>
+        Los Skills son capacidades especializadas que amplían lo que puede hacer Cowork. Cada skill tiene su propio conjunto de instrucciones optimizadas para una tarea docente concreta.</p>
+        <ul>
+          <li>📚 <strong>Temario didáctico</strong> — genera unidades de aprendizaje con objetivos Bloom.</li>
+          <li>📋 <strong>Actividades + rúbrica</strong> — diseña actividades con criterios de evaluación.</li>
+          <li>📝 <strong>Generador de exámenes</strong> — crea pruebas balanceadas desde el temario.</li>
+          <li>✅ <strong>Corrector de alumnos</strong> — evalúa respuestas y genera feedback constructivo.</li>
+          <li>🌐 <strong>Lección interactiva</strong> — convierte cualquier <code>.md</code> en una web interactiva.</li>
+        </ul>
+        <div class="highlight-box">
+          🎯 <strong>Flujo típico:</strong> Describes el módulo → Cowork genera el borrador → tú revisas y ajustas en lenguaje natural → material listo en minutos.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 4: Claude Code ══════════ -->
+  <section class="slide" id="slide-3">
+    <div class="card">
+      <p class="slide-tag">Bloque 4 · Claude Code</p>
+      <h1 class="slide-title">Claude Code: el agente que actúa en tu repositorio</h1>
+      <div class="slide-body">
+        <p>Claude Code no es solo un chat — es un agente que puede <strong>leer, escribir y ejecutar</strong> comandos directamente en tu proyecto. Vive en la terminal.</p>
+        <p><strong>¿En qué se diferencia de Cowork?</strong></p>
+        <ul>
+          <li><strong>Cowork</strong> trabaja dentro de Obsidian, sobre documentos y notas.</li>
+          <li><strong>Claude Code</strong> actúa sobre el repositorio de código: genera HTML, ejecuta <code>git</code>, despliega a Vercel.</li>
+        </ul>
+        <p><strong>¿Qué puede hacer en la sesión de hoy?</strong></p>
+        <ul>
+          <li>Leer un <code>.md</code> y convertirlo en una página web interactiva completa.</li>
+          <li>Ajustar el diseño en lenguaje natural: <em>"usa los colores de marca"</em>, <em>"añade una barra de progreso"</em>.</li>
+          <li>Subir el resultado a GitHub con <code>git init</code>, <code>git add</code>, <code>git commit</code>, <code>git push</code>.</li>
+        </ul>
+        <div class="highlight-box">
+          ⚡ <strong>Principio clave:</strong> Tú describes el resultado en español. Claude Code traduce eso a código y comandos. No necesitas saber programar.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 5: GitHub + Vercel ══════════ -->
+  <section class="slide" id="slide-4">
+    <div class="card">
+      <p class="slide-tag">Bloque 5 · Publicación</p>
+      <h1 class="slide-title">GitHub + Vercel: de archivo local a URL pública</h1>
+      <div class="slide-body">
+        <p>Una vez que Claude Code genera el material, dos herramientas lo llevan al mundo real en cuestión de minutos.</p>
+        <p><strong>GitHub</strong> — la nube del código</p>
+        <ul>
+          <li>Almacena el proyecto en la nube de forma gratuita.</li>
+          <li>Permite colaboración: varios docentes pueden trabajar sobre el mismo repositorio.</li>
+          <li>Guarda el historial de cambios: puedes volver a cualquier versión anterior.</li>
+        </ul>
+        <p><strong>Vercel</strong> — el despliegue automático</p>
+        <ul>
+          <li>Se conecta a GitHub con 3 clics.</li>
+          <li>Cada vez que hay un cambio en GitHub, Vercel despliega la nueva versión automáticamente.</li>
+          <li>El material queda en una <strong>URL pública</strong> accesible desde cualquier dispositivo.</li>
+        </ul>
+        <div class="highlight-box">
+          🌟 <strong>El momento "wow":</strong> Haces un cambio en el texto, Claude Code lo sube a GitHub… y en 30 segundos la web ya está actualizada para todos los alumnos.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 6: Casos de uso ══════════ -->
+  <section class="slide" id="slide-5">
+    <div class="card">
+      <p class="slide-tag">Bloque 6 · Aplicación real</p>
+      <h1 class="slide-title">El ecosistema en marcha: casos de uso reales</h1>
+      <div class="slide-body">
+        <p>El flujo que hemos construido hoy no es un ejercicio puntual. Es una infraestructura reutilizable para cualquier necesidad docente.</p>
+        <div class="flow-row" style="margin-bottom:24px">
+          <span class="flow-chip">📝 Obsidian</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🤖 Cowork + Skills</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">💻 Claude Code</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🐙 GitHub</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-chip">🌐 Vercel</span>
+        </div>
+        <div class="use-case-grid">
+          <div class="use-case-card">
+            <div class="uc-icon">🔄</div>
+            <h4>Temario siempre actualizado</h4>
+            <p>Cuando cambia una tecnología, el agente actualiza el temario y las actividades asociadas.</p>
+          </div>
+          <div class="use-case-card">
+            <div class="uc-icon">🌐</div>
+            <h4>Materiales interactivos en web</h4>
+            <p>Cualquier <code>.md</code> se convierte en una lección navegable, publicada y accesible al instante.</p>
+          </div>
+          <div class="use-case-card">
+            <div class="uc-icon">📝</div>
+            <h4>Generador de exámenes</h4>
+            <p>A partir del temario existente, genera pruebas balanceadas con preguntas de distintos niveles cognitivos.</p>
+          </div>
+          <div class="use-case-card">
+            <div class="uc-icon">🎨</div>
+            <h4>Skill con identidad propia</h4>
+            <p>Un skill personalizado con el tono, vocabulario y estilo de tu organización educativa.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 7: Quiz ══════════ -->
+  <section class="slide" id="slide-6">
+    <div class="card">
+      <div class="quiz-header">
+        <div class="quiz-icon">🧠</div>
+        <div>
+          <h1>Autoevaluación final</h1>
+          <p>10 preguntas · Selecciona una respuesta por pregunta · Puntuación al finalizar</p>
+        </div>
+      </div>
+
+      <!-- Q1 -->
+      <div class="question-block" data-correct="b">
+        <p class="q-label">Pregunta 1 de 10</p>
+        <p class="q-text">¿Cuál es el nuevo rol del docente en el flujo de trabajo con IA?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Escribir todos los materiales desde cero sin intervención de la IA</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Pasar de creador a curador y revisor de materiales generados por IA</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Programar las aplicaciones web que usarán los alumnos</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Delegar completamente en la IA sin revisión posterior</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="question-block" data-correct="c">
+        <p class="q-label">Pregunta 2 de 10</p>
+        <p class="q-text">¿Por qué Markdown es la base del ecosistema didáctico que hemos visto?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Porque es el único formato que entienden los navegadores web</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Porque requiere software de pago para editarlo</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Usa menos tokens, es compatible con múltiples herramientas y es fácil de revisar por humanos</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Porque la IA no puede leer ningún otro formato de texto</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="question-block" data-correct="c">
+        <p class="q-label">Pregunta 3 de 10</p>
+        <p class="q-text">¿Qué herramienta sirve para gestionar notas y documentos en texto plano dentro de una carpeta local?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Vercel</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>GitHub</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Obsidian</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Claude Code</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="question-block" data-correct="b">
+        <p class="q-label">Pregunta 4 de 10</p>
+        <p class="q-text">¿Qué es un "skill" en Claude Cowork?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Un lenguaje de programación especializado para docentes</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Una capacidad especializada que extiende y orienta lo que puede hacer el asistente</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Un archivo de configuración de Vercel para despliegues</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Un tipo especial de repositorio de GitHub</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="question-block" data-correct="b">
+        <p class="q-label">Pregunta 5 de 10</p>
+        <p class="q-text">¿En qué se diferencia Claude Code de Claude Cowork?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Claude Code solo genera texto; Cowork actúa sobre archivos de código</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Claude Code actúa en el repositorio y ejecuta comandos; Cowork trabaja dentro de Obsidian sobre documentos</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Son exactamente lo mismo con distinto nombre</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Cowork se usa en la terminal y Claude Code en el navegador</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="question-block" data-correct="c">
+        <p class="q-label">Pregunta 6 de 10</p>
+        <p class="q-text">¿Cuál es la función principal de GitHub en el flujo docente?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Diseñar la interfaz visual de la página web</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Generar automáticamente preguntas de examen</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Alojar el código en la nube y facilitar la colaboración entre docentes</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Corregir los trabajos de los alumnos con rúbricas</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="question-block" data-correct="b">
+        <p class="q-label">Pregunta 7 de 10</p>
+        <p class="q-text">¿Qué ocurre automáticamente cuando se sube un cambio a GitHub con Vercel conectado?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Se envía un correo electrónico al equipo docente</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Vercel despliega la nueva versión del proyecto en producción</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Se genera automáticamente un nuevo temario didáctico</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Se crea una copia de seguridad local en Obsidian</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="question-block" data-correct="c">
+        <p class="q-label">Pregunta 8 de 10</p>
+        <p class="q-text">¿Cuál es el orden correcto del flujo completo del ecosistema?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>GitHub → Vercel → Obsidian → Claude Code → Cowork</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Cowork → Claude Code → Obsidian → Vercel → GitHub</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Obsidian → Cowork → Claude Code → GitHub → Vercel</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Vercel → GitHub → Claude Code → Cowork → Obsidian</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="question-block" data-correct="c">
+        <p class="q-label">Pregunta 9 de 10</p>
+        <p class="q-text">¿Qué tipo de archivo produce el skill de "lección interactiva"?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Un PDF con las respuestas de los alumnos</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Una hoja de cálculo con las notas del grupo</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Un archivo HTML autocontenido con navegación, preguntas y feedback inmediato</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Un repositorio de GitHub vacío listo para usar</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="question-block" data-correct="b">
+        <p class="q-label">Pregunta 10 de 10</p>
+        <p class="q-text">¿Cuál de estos es un caso de uso real y directo del ecosistema IA para docentes que hemos construido?</p>
+        <ul class="options-list">
+          <li><button class="option-btn" data-val="a"><span class="opt-letter">A</span>Reemplazar completamente al docente en el aula</button></li>
+          <li><button class="option-btn" data-val="b"><span class="opt-letter">B</span>Generar exámenes o autoevaluaciones a partir del temario ya existente</button></li>
+          <li><button class="option-btn" data-val="c"><span class="opt-letter">C</span>Eliminar la necesidad de revisar los materiales generados por IA</button></li>
+          <li><button class="option-btn" data-val="d"><span class="opt-letter">D</span>Publicar en redes sociales de forma automática sin supervisión</button></li>
+        </ul>
+        <div class="q-feedback"></div>
+      </div>
+
+      <button id="quiz-submit-btn" disabled>Ver mi puntuación</button>
+    </div>
+  </section>
+
+  <!-- ══════════ SLIDE 8: Results ══════════ -->
+  <section class="slide" id="slide-7">
+    <div class="card">
+      <p class="slide-tag" style="text-align:center">Resultados</p>
+      <h1 class="slide-title" style="text-align:center">Has completado la autoevaluación</h1>
+
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <svg viewBox="0 0 140 140" width="140" height="140">
+            <circle class="ring-bg" cx="70" cy="70" r="65"/>
+            <circle class="ring-fill" id="ring-fill" cx="70" cy="70" r="65"/>
+          </svg>
+          <div class="score-number" id="score-number">0/10</div>
+        </div>
+      </div>
+
+      <p class="result-msg" id="result-msg"></p>
+      <p class="result-sub" id="result-sub"></p>
+
+      <div class="result-breakdown">
+        <div class="rb-item">
+          <div class="rb-val ok-c" id="rb-correct">—</div>
+          <div class="rb-label">Correctas</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-val err-c" id="rb-wrong">—</div>
+          <div class="rb-label">Incorrectas</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-val" id="rb-pct" style="color:var(--brand)">—</div>
+          <div class="rb-label">Puntuación</div>
+        </div>
+      </div>
+
+      <div style="text-align:center">
+        <button id="restart-btn">← Volver al inicio</button>
+        <button id="retake-quiz-btn">Repetir quiz</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Footer nav -->
+<footer>
+  <button class="nav-btn" id="prev-btn" disabled>← Anterior</button>
+  <div class="step-dots" id="step-dots"></div>
+  <button class="nav-btn primary" id="next-btn">Siguiente →</button>
+</footer>
+
+<script>
+  const TOTAL_SLIDES = 8;
+  const QUIZ_SLIDE   = 6;   // 0-indexed: slide 7 is the quiz
+  const RESULTS_SLIDE = 7;  // slide 8 is results
+
+  let currentSlide = 0;
+  let answers = {};         // { questionIndex: chosenValue }
+  let quizSubmitted = false;
+
+  // ── Build dots ──
+  const dotsWrap = document.getElementById('step-dots');
+  for (let i = 0; i < TOTAL_SLIDES; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.dataset.i = i;
+    d.addEventListener('click', () => goTo(i));
+    dotsWrap.appendChild(d);
+  }
+
+  function updateUI() {
+    // slides
+    document.querySelectorAll('.slide').forEach((s, i) => {
+      s.classList.toggle('active', i === currentSlide);
+    });
+    // dots
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === currentSlide);
+      if (i < currentSlide) d.classList.add('visited');
+    });
+    // progress
+    const pct = ((currentSlide) / (TOTAL_SLIDES - 1)) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    // counter
+    document.getElementById('step-counter').textContent =
+      currentSlide === RESULTS_SLIDE
+        ? 'Resultados'
+        : `Paso ${currentSlide + 1} de ${TOTAL_SLIDES}`;
+    // nav buttons
+    document.getElementById('prev-btn').disabled = currentSlide === 0;
+    const nextBtn = document.getElementById('next-btn');
+    if (currentSlide === RESULTS_SLIDE) {
+      nextBtn.style.display = 'none';
+    } else if (currentSlide === QUIZ_SLIDE) {
+      nextBtn.textContent = 'Ver puntuación →';
+      nextBtn.style.display = '';
+      nextBtn.disabled = !quizSubmitted;
+    } else {
+      nextBtn.textContent = 'Siguiente →';
+      nextBtn.style.display = '';
+      nextBtn.disabled = false;
+    }
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= TOTAL_SLIDES) return;
+    if (index === RESULTS_SLIDE && !quizSubmitted) return;
+    currentSlide = index;
+    updateUI();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(currentSlide - 1));
+  document.getElementById('next-btn').addEventListener('click', () => {
+    if (currentSlide === QUIZ_SLIDE) {
+      if (quizSubmitted) showResults();
+    } else {
+      goTo(currentSlide + 1);
+    }
+  });
+
+  // ── Quiz logic ──
+  const questions = document.querySelectorAll('.question-block');
+  const submitBtn = document.getElementById('quiz-submit-btn');
+
+  questions.forEach((qBlock, qi) => {
+    const opts = qBlock.querySelectorAll('.option-btn');
+    opts.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (quizSubmitted) return;
+        opts.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        answers[qi] = btn.dataset.val;
+        checkSubmitReady();
+      });
+    });
+  });
+
+  function checkSubmitReady() {
+    submitBtn.disabled = Object.keys(answers).length < questions.length;
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (Object.keys(answers).length < questions.length) return;
+    quizSubmitted = true;
+    submitBtn.disabled = true;
+
+    questions.forEach((qBlock, qi) => {
+      const correct = qBlock.dataset.correct;
+      const chosen  = answers[qi];
+      const opts    = qBlock.querySelectorAll('.option-btn');
+      const fb      = qBlock.querySelector('.q-feedback');
+
+      opts.forEach(btn => {
+        btn.disabled = true;
+        if (btn.dataset.val === correct) btn.classList.add('correct');
+        if (btn.dataset.val === chosen && chosen !== correct) btn.classList.add('wrong');
+      });
+
+      fb.classList.add('show');
+      if (chosen === correct) {
+        fb.classList.add('ok');
+        fb.textContent = '✓ ¡Correcto!';
+      } else {
+        fb.classList.add('ko');
+        const correctText = qBlock.querySelector(`[data-val="${correct}"]`).textContent.trim();
+        fb.textContent = `✗ La respuesta correcta era: "${correctText}"`;
+      }
+    });
+
+    // Update next button
+    document.getElementById('next-btn').disabled = false;
+    document.getElementById('next-btn').textContent = 'Ver puntuación →';
+  });
+
+  function showResults() {
+    const correct = questions.length
+      ? [...questions].filter((q, i) => answers[i] === q.dataset.correct).length
+      : 0;
+    const total   = questions.length;
+    const pct     = Math.round((correct / total) * 100);
+    const circumf = 2 * Math.PI * 65; // r=65
+
+    document.getElementById('score-number').textContent = `${correct}/${total}`;
+    document.getElementById('rb-correct').textContent = correct;
+    document.getElementById('rb-wrong').textContent   = total - correct;
+    document.getElementById('rb-pct').textContent     = pct + '%';
+
+    const ring = document.getElementById('ring-fill');
+    const offset = circumf - (pct / 100) * circumf;
+    ring.style.stroke = pct >= 70 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
+    setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+
+    let msg, sub;
+    if (pct === 100) {
+      msg = '¡Perfecto! Dominas el ecosistema.';
+      sub = 'Excelente comprensión de todos los conceptos de la sesión.';
+    } else if (pct >= 70) {
+      msg = '¡Muy buen resultado!';
+      sub = 'Tienes una base sólida. Repasa los temas en los que has fallado.';
+    } else if (pct >= 50) {
+      msg = 'Vas por buen camino.';
+      sub = 'Te recomendamos repasar las secciones correspondientes a las preguntas incorrectas.';
+    } else {
+      msg = 'Sigue practicando.';
+      sub = 'Vuelve a revisar los bloques de la lección y repite el quiz.';
+    }
+    document.getElementById('result-msg').textContent = msg;
+    document.getElementById('result-sub').textContent = sub;
+
+    goTo(RESULTS_SLIDE);
+  }
+
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    answers = {};
+    quizSubmitted = false;
+    questions.forEach(qBlock => {
+      qBlock.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected', 'correct', 'wrong');
+        btn.disabled = false;
+      });
+      const fb = qBlock.querySelector('.q-feedback');
+      fb.className = 'q-feedback';
+      fb.textContent = '';
+    });
+    submitBtn.disabled = true;
+    document.getElementById('next-btn').style.display = '';
+    goTo(0);
+  });
+
+  document.getElementById('retake-quiz-btn').addEventListener('click', () => {
+    answers = {};
+    quizSubmitted = false;
+    questions.forEach(qBlock => {
+      qBlock.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('selected', 'correct', 'wrong');
+        btn.disabled = false;
+      });
+      const fb = qBlock.querySelector('.q-feedback');
+      fb.className = 'q-feedback';
+      fb.textContent = '';
+    });
+    submitBtn.disabled = true;
+    document.getElementById('next-btn').style.display = '';
+    goTo(QUIZ_SLIDE);
+  });
+
+  updateUI();
+</script>
+</body>
+</html>
