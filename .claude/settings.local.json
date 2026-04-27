@@ -9,7 +9,8 @@
       "Bash(mv actividades-y-rubrica *)",
       "Bash(mv corrector-respuestas *)",
       "Bash(mv leccion-interactiva *)",
-      "Bash(mv generador-examenes *)"
+      "Bash(mv generador-examenes *)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

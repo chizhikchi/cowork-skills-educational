@@ -23,3 +23,5 @@ Copia la carpeta de la skill que necesites en tu directorio de skills de Claude 
 ```
 Obsidian (.md) → Cowork (skills preinstaladas) → materiales → Claude Code (skills personalizadas) → GitHub → Vercel
 ```
+
+> **Nota:** Puedes encontrar los recursos presentados durante la sesión en [visuales-formación.png](./visuales-formación.png)

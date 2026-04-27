@@ -1,9 +1,14 @@
 # Notas del vault de Obsidian (no se publican)
 /*.md
+/*.canvas
 !README.md
 
 # Carpeta interna de Obsidian
 .obsidian/
+.claude/worktrees/
+.claude/settings.local.json
+cata/
 
 # macOS
 .DS_Store
+.vercel
