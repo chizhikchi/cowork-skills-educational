@@ -1,6 +1,8 @@
-# Claude Cowork Skills — Educación
+# Claude Code Skills — Educación
 
-Skills para [Claude Cowork](https://claude.ai/code) orientadas a equipos docentes. Claude Cowork es una versión de Claude Code pensada para el knowledge work: agéntica, con skills por defecto y conectores, funciona con cualquier carpeta. En esta sesión la usamos con Obsidian, Markdown y GitHub.
+Skills para [Claude Code](https://claude.ai/code) orientadas a equipos docentes. Claude Cowork es una versión de Claude Code pensada para el knowledge work: agéntica, con skills por defecto y conectores, funciona con cualquier carpeta. En esta sesión la usamos con Obsidian, Markdown y GitHub.
+
+> **Nota:** Las skills personalizadas de este repositorio se importan en **Claude Code**, no en Cowork. Cowork dispone de sus propias skills preinstaladas, pero de momento no admite la importación de skills externas.
 
 ## Skills disponibles
 
@@ -14,10 +16,10 @@ Skills para [Claude Cowork](https://claude.ai/code) orientadas a equipos docente
 
 ## Uso
 
-Copia la carpeta de la skill que necesites en tu directorio de skills de Cowork, o carga el fichero `SKILL.md` directamente en tu sesión.
+Copia la carpeta de la skill que necesites en tu directorio de skills de Claude Code, o carga el fichero `SKILL.md` directamente en tu sesión.
 
 ## Flujo de trabajo
 
 ```
-Obsidian (.md) → Cowork + Skills → materiales → Claude Code → GitHub → Vercel
+Obsidian (.md) → Cowork (skills preinstaladas) → materiales → Claude Code (skills personalizadas) → GitHub → Vercel
 ```
