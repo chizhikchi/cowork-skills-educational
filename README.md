@@ -1,6 +1,6 @@
 # Claude Cowork Skills — Educación
 
-Skills para [Claude Cowork](https://claude.ai/code) orientadas a equipos docentes que trabajan con Obsidian, Markdown y GitHub.
+Skills para [Claude Cowork](https://claude.ai/code) orientadas a equipos docentes. Claude Cowork es una versión de Claude Code pensada para el knowledge work: agéntica, con skills por defecto y conectores, funciona con cualquier carpeta. En esta sesión la usamos con Obsidian, Markdown y GitHub.
 
 ## Skills disponibles
 
